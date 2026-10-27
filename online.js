@@ -21,6 +21,13 @@ const onlineElements = {
   visitSummary: document.getElementById('online-visit-summary'),
   visitStats: document.getElementById('online-visit-stats'),
   visitJournal: document.getElementById('online-visit-journal'),
+  ownerAccessButton: document.getElementById('owner-access-button'),
+  ownerAccessDialog: document.getElementById('owner-access-dialog'),
+  ownerAccessStatus: document.getElementById('owner-access-status'),
+  ownerLoginForm: document.getElementById('owner-login-form'),
+  ownerEmail: document.getElementById('owner-email'),
+  ownerLoginButton: document.getElementById('owner-login-button'),
+  ownerSignoutButton: document.getElementById('owner-signout-button'),
 };
 
 let client = null;
@@ -28,10 +35,87 @@ let channel = null;
 let connected = false;
 let lastMessageAt = 0;
 let profileTimer = 0;
+let ownerCheckVersion = 0;
 
 function setOnlineStatus(message, kind = '') {
   onlineElements.status.textContent = message;
   onlineElements.status.className = `online-status${kind ? ` online-status--${kind}` : ''}`;
+}
+
+function getSupabaseClient() {
+  if (client) return client;
+  if (!window.supabase?.createClient) {
+    throw new Error('The Supabase library did not load. Check your internet connection and refresh.');
+  }
+  const projectUrl = typeof onlineConfig.projectUrl === 'string' ? onlineConfig.projectUrl.trim() : '';
+  const publishableKey = typeof onlineConfig.publishableKey === 'string' ? onlineConfig.publishableKey.trim() : '';
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(projectUrl);
+  } catch {
+    throw new Error('The Supabase project URL is missing or invalid.');
+  }
+  if (parsedUrl.protocol !== 'https:' || !publishableKey) {
+    throw new Error('The HTTPS project URL and public publishable key are required.');
+  }
+  client = window.supabase.createClient(projectUrl, publishableKey, {
+    realtime: { params: { eventsPerSecond: 8 } },
+  });
+  return client;
+}
+
+async function hashEmail(email) {
+  const normalizedEmail = email.trim().toLowerCase();
+  const bytes = new TextEncoder().encode(normalizedEmail);
+  const digest = await window.crypto.subtle.digest('SHA-256', bytes);
+  return [...new Uint8Array(digest)]
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+function getAdminEmailHash() {
+  return typeof onlineConfig.adminEmailHash === 'string'
+    ? onlineConfig.adminEmailHash.trim().toLowerCase()
+    : '';
+}
+
+async function updateOwnerAccess(session) {
+  const checkVersion = ++ownerCheckVersion;
+  const userEmail = session?.user?.email;
+  const adminEmailHash = getAdminEmailHash();
+  let isOwner = false;
+  if (userEmail && /^[a-f0-9]{64}$/.test(adminEmailHash)) {
+    try {
+      isOwner = await hashEmail(userEmail) === adminEmailHash;
+    } catch (error) {
+      if (checkVersion !== ownerCheckVersion) return;
+      window.littleLivesIsAdmin = false;
+      window.dispatchEvent(new CustomEvent('little-lives:admin-access-change', {
+        detail: false,
+      }));
+      onlineElements.ownerAccessButton.textContent = 'Owner sign-in';
+      onlineElements.ownerLoginForm.hidden = false;
+      onlineElements.ownerSignoutButton.hidden = !session;
+      onlineElements.ownerAccessStatus.textContent = `Could not verify owner access: ${error.message}`;
+      return;
+    }
+  }
+
+  if (checkVersion !== ownerCheckVersion) return;
+  window.littleLivesIsAdmin = isOwner;
+  window.dispatchEvent(new CustomEvent('little-lives:admin-access-change', {
+    detail: isOwner,
+  }));
+  onlineElements.ownerAccessButton.textContent = isOwner ? 'Owner access' : 'Owner sign-in';
+  onlineElements.ownerLoginForm.hidden = isOwner;
+  onlineElements.ownerSignoutButton.hidden = !session;
+  onlineElements.ownerAccessStatus.textContent = isOwner
+    ? 'Owner verified. The Admin page is now available.'
+    : session
+      ? 'This account does not have owner access. Sign out and use the owner email.'
+      : getAdminEmailHash()
+        ? 'Admin access is limited to the verified game owner.'
+        : 'Owner access is locked until the owner email is configured.';
 }
 
 function readCurrentProfile() {
@@ -184,28 +268,8 @@ async function updatePresence() {
 }
 
 function connectToLobby() {
-  if (!window.supabase?.createClient) {
-    setOnlineStatus('The realtime library did not load. Check your internet connection and refresh.', 'error');
-    return;
-  }
-  const projectUrl = typeof onlineConfig.projectUrl === 'string' ? onlineConfig.projectUrl.trim() : '';
-  const publishableKey = typeof onlineConfig.publishableKey === 'string' ? onlineConfig.publishableKey.trim() : '';
-  let parsedUrl;
   try {
-    parsedUrl = new URL(projectUrl);
-  } catch {
-    setOnlineStatus('The lobby is not configured. Add a valid Supabase Project URL in online-config.js.', 'error');
-    return;
-  }
-  if (parsedUrl.protocol !== 'https:' || !publishableKey) {
-    setOnlineStatus('The lobby is not configured. Add the HTTPS Project URL and public anon/publishable key in online-config.js.', 'error');
-    return;
-  }
-
-  try {
-    client = window.supabase.createClient(projectUrl, publishableKey, {
-      realtime: { params: { eventsPerSecond: 8 } },
-    });
+    client = getSupabaseClient();
     channel = client.channel(ONLINE_ROOM, {
       config: {
         private: false,
@@ -245,6 +309,49 @@ function connectToLobby() {
   }
 }
 
+onlineElements.ownerAccessButton.addEventListener('click', () => {
+  onlineElements.ownerAccessDialog.showModal();
+  onlineElements.ownerEmail.focus();
+});
+
+onlineElements.ownerLoginForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const adminEmailHash = getAdminEmailHash();
+  if (!/^[a-f0-9]{64}$/.test(adminEmailHash)) {
+    onlineElements.ownerAccessStatus.textContent = 'Owner access is not configured yet. Contact the game owner.';
+    return;
+  }
+
+  const email = onlineElements.ownerEmail.value.trim();
+  try {
+    if (await hashEmail(email) !== adminEmailHash) {
+      onlineElements.ownerAccessStatus.textContent = 'That email is not authorized for owner access.';
+      return;
+    }
+    const supabase = getSupabaseClient();
+    const redirectTo = `${window.location.origin}${window.location.pathname}`;
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: redirectTo },
+    });
+    if (error) throw error;
+    onlineElements.ownerAccessStatus.textContent = 'Check your email for the secure sign-in link. It expires and can only be used once.';
+  } catch (error) {
+    onlineElements.ownerAccessStatus.textContent = `Could not send the owner sign-in link: ${error.message}`;
+  }
+});
+
+onlineElements.ownerSignoutButton.addEventListener('click', async () => {
+  try {
+    const supabase = getSupabaseClient();
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    onlineElements.ownerAccessStatus.textContent = 'You are signed out.';
+  } catch (error) {
+    onlineElements.ownerAccessStatus.textContent = `Could not sign out: ${error.message}`;
+  }
+});
+
 onlineElements.setup.hidden = Boolean(
   typeof onlineConfig.projectUrl === 'string'
   && onlineConfig.projectUrl.trim()
@@ -258,6 +365,20 @@ if (onlineElements.setup.hidden) {
   setOnlineStatus('Choose a nickname and join the lobby to get started.');
 } else {
   setOnlineStatus('Multiplayer is not configured yet.');
+  try {
+    const supabase = getSupabaseClient();
+    supabase.auth.onAuthStateChange((_event, session) => {
+      void updateOwnerAccess(session);
+    });
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (error) throw error;
+      return updateOwnerAccess(data.session);
+    }).catch((error) => {
+      onlineElements.ownerAccessStatus.textContent = `Could not check owner sign-in: ${error.message}`;
+    });
+  } catch (error) {
+    onlineElements.ownerAccessStatus.textContent = `Owner sign-in is unavailable: ${error.message}`;
+  }
 }
 renderOnlinePlayers();
 

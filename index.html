@@ -19,6 +19,7 @@
         </a>
         <div class="topbar-right">
           <span class="live-indicator"><span></span> YOUR STORY</span>
+          <button id="owner-access-button" class="quiet-button" type="button">Owner sign-in</button>
           <button id="restart-button" class="quiet-button" type="button">Start over</button>
         </div>
       </header>
@@ -30,7 +31,7 @@
         <button class="menu-link" type="button" data-page="jobs">Jobs</button>
         <button class="menu-link" type="button" data-page="education">Education</button>
         <button class="menu-link" type="button" data-page="assets">Assets</button>
-        <button class="menu-link admin-menu-link" type="button" data-page="admin">Admin</button>
+        <button class="menu-link admin-menu-link" type="button" data-page="admin" hidden>Admin</button>
       </nav>
 
       <section class="page-view online-page" data-page-view="online" hidden>
@@ -404,6 +405,19 @@
       <footer class="footer-note">No two lives turn out quite the same. See where yours goes.</footer>
     </main>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <dialog id="owner-access-dialog" class="online-visit-dialog owner-access-dialog">
+      <form method="dialog"><button class="quiet-button online-dialog-close" aria-label="Close owner sign-in">Close</button></form>
+      <p class="eyebrow">PRIVATE GAME TOOLS</p>
+      <h2>Owner sign-in</h2>
+      <p id="owner-access-status" class="detail-description" role="status" aria-live="polite">Admin access is limited to the game owner.</p>
+      <form id="owner-login-form" class="owner-login-form">
+        <label class="online-label" for="owner-email">Owner email</label>
+        <input id="owner-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required />
+        <button id="owner-login-button" class="age-button" type="submit"><span>Email me a sign-in link</span><span aria-hidden="true">→</span></button>
+      </form>
+      <button id="owner-signout-button" class="quiet-button owner-signout-button" type="button" hidden>Sign out</button>
+      <p class="online-chat-note">Only the verified owner account can open the Admin panel. Never share your sign-in link.</p>
+    </dialog>
     <script src="script.js"></script>
     <script src="online-config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

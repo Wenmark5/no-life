@@ -122,6 +122,10 @@ function showToast(message) {
 function showPage(page) {
   const viewExists = elements.pageViews.some((view) => view.dataset.pageView === page);
   if (!viewExists) return;
+  if (page === 'admin' && !window.littleLivesIsAdmin) {
+    showToast('Admin access is limited to the game owner.');
+    return;
+  }
 
   currentPage = page;
   elements.pageViews.forEach((view) => {
@@ -679,6 +683,13 @@ elements.activityCategories.forEach((button) => {
 elements.ageButton.addEventListener('click', finishYear);
 elements.restart.addEventListener('click', restartGame);
 setupAdminControls();
+window.littleLivesIsAdmin = false;
+window.addEventListener('little-lives:admin-access-change', (event) => {
+  const isAdmin = event.detail === true;
+  const adminButton = elements.pageButtons.find((button) => button.dataset.page === 'admin');
+  if (adminButton) adminButton.hidden = !isAdmin;
+  if (!isAdmin && currentPage === 'admin') showPage('age');
+});
 window.littleLivesGetOnlineProfile = getOnlineProfile;
 showPage(currentPage);
 render();
