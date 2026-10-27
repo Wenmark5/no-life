@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f5f4ed" />
+    <title>Little Lives — Life Simulator</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="game-shell">
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="Little Lives home">
+          <span class="brand-mark" aria-hidden="true">✳</span>
+          <span>
+            <span class="brand-name">little lives</span>
+            <span class="brand-caption">a life, one year at a time</span>
+          </span>
+        </a>
+        <div class="topbar-right">
+          <span class="live-indicator"><span></span> YOUR STORY</span>
+          <button id="restart-button" class="quiet-button" type="button">Start over</button>
+        </div>
+      </header>
+
+      <nav class="life-menu" aria-label="Life pages">
+        <span class="menu-label">YOUR LIFE</span>
+        <button class="menu-link" type="button" data-page="age" aria-current="page">Age</button>
+        <button class="menu-link" type="button" data-page="jobs">Jobs</button>
+        <button class="menu-link" type="button" data-page="education">Education</button>
+        <button class="menu-link" type="button" data-page="assets">Assets</button>
+        <button class="menu-link admin-menu-link" type="button" data-page="admin">Admin</button>
+      </nav>
+
+      <section class="page-view age-page" data-page-view="age">
+        <div class="welcome-row">
+          <div>
+            <p class="eyebrow">A LITTLE LIFE SIMULATOR</p>
+            <h1>Make a life <span>of your own.</span></h1>
+            <p class="intro">Choose how to spend your time. The years will take care of the rest.</p>
+          </div>
+          <div class="year-card">
+            <span class="year-label">YOUR AGE</span>
+            <span id="player-age" class="age-number">18</span>
+            <span id="year-label" class="year-caption">Year 1 of your story</span>
+            <span id="life-stage" class="stage-pill">Just starting out</span>
+          </div>
+        </div>
+
+        <div class="stat-grid age-stats" aria-label="Your life stats">
+          <article class="stat-card">
+            <div class="stat-top"><span class="stat-icon heart">♥</span><span class="stat-name">HAPPINESS</span></div>
+            <strong id="player-happiness">72<span class="unit">/100</span></strong>
+            <div class="meter happiness-meter"><span id="happiness-meter"></span></div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-top"><span class="stat-icon health">✚</span><span class="stat-name">HEALTH</span></div>
+            <strong id="player-health">86<span class="unit">/100</span></strong>
+            <div class="meter health-meter"><span id="health-meter"></span></div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-top"><span class="stat-icon looks">✦</span><span class="stat-name">LOOKS</span></div>
+            <strong id="player-looks">68<span class="unit">/100</span></strong>
+            <div class="meter looks-meter"><span id="looks-meter"></span></div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-top"><span class="stat-icon smarts">✎</span><span class="stat-name">SMARTS</span></div>
+            <strong id="player-smarts">55<span class="unit">/100</span></strong>
+            <div class="meter smarts-meter"><span id="smarts-meter"></span></div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-top"><span class="stat-icon karma">☼</span><span class="stat-name">KARMA</span></div>
+            <strong id="player-karma">50<span class="unit">/100</span></strong>
+            <div class="meter karma-meter"><span id="karma-meter"></span></div>
+          </article>
+        </div>
+
+        <div class="main-grid age-grid">
+          <div class="primary-column">
+            <section class="section-card actions-section">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">YOUR CHOICE THIS YEAR</p>
+                <h2>Spend a year on something</h2>
+              </div>
+            </div>
+            <div id="activity-categories" class="activity-categories" role="group" aria-label="Activity categories">
+              <button class="activity-category" type="button" data-category="wellbeing" aria-pressed="true">Wellbeing</button>
+              <button class="activity-category" type="button" data-category="learning" aria-pressed="false">Learning</button>
+              <button class="activity-category" type="button" data-category="social" aria-pressed="false">Social</button>
+              <button class="activity-category" type="button" data-category="adventure" aria-pressed="false">Adventure</button>
+              <button class="activity-category" type="button" data-category="kindness" aria-pressed="false">Kindness</button>
+              <button class="activity-category" type="button" data-category="work" aria-pressed="false">Work</button>
+            </div>
+            <div id="activity-grid" class="action-grid" aria-live="polite"></div>
+            <div class="year-footer">
+              <span id="action-status" aria-live="polite">You haven't chosen an activity yet.</span>
+              <button id="age-button" class="age-button" type="button">
+                <span>Finish this year</span><span aria-hidden="true">→</span>
+              </button>
+            </div>
+            </section>
+
+            <section class="section-card journal-section">
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">A FEW THINGS TO REMEMBER</p>
+                  <h2>Your little life journal</h2>
+                </div>
+                <span id="journal-count" class="job-summary">Your story is beginning</span>
+              </div>
+              <ol id="journal-list" class="journal-list" aria-live="polite"></ol>
+            </section>
+          </div>
+
+          <aside class="section-card people-section">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">THE PEOPLE AROUND YOU</p>
+                <h2>Other little lives</h2>
+              </div>
+              <span class="people-count">3 PEOPLE</span>
+            </div>
+            <p class="people-intro">They have their own hopes. Every year, they decide what matters to them.</p>
+            <div id="npc-list" class="npc-list"></div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="page-view detail-page" data-page-view="jobs" hidden>
+        <header class="page-title">
+          <p class="eyebrow">MAKE A LIVING</p>
+          <h1>Your <span>working life.</span></h1>
+          <p class="intro">Explore careers and choose what you want to do.</p>
+        </header>
+        <section class="section-card career-section">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">CAREERS</p>
+              <h2>Choose a job</h2>
+            </div>
+            <span id="job-summary" class="job-summary">Between jobs</span>
+          </div>
+          <div id="career-list" class="career-list" aria-label="Available careers"></div>
+        </section>
+      </section>
+
+      <section class="page-view detail-page" data-page-view="education" hidden>
+        <header class="page-title">
+          <p class="eyebrow">KEEP LEARNING</p>
+          <h1>Your <span>education.</span></h1>
+          <p class="intro">Learning takes time, but it can open up new career paths.</p>
+        </header>
+        <section class="section-card detail-card education-detail">
+          <span class="detail-icon education-detail-icon" aria-hidden="true">✎</span>
+          <div>
+            <p class="eyebrow">CURRENT EDUCATION</p>
+            <h2 id="player-education">High school</h2>
+            <p id="education-note" class="detail-description">Ready to learn more</p>
+          </div>
+        </section>
+        <section class="section-card detail-card">
+          <div>
+            <p class="eyebrow">HOW TO STUDY</p>
+            <h2>Make it part of your year</h2>
+            <p class="detail-description">Go to the Age page and choose “Go to school” as your activity. It costs $700 and advances your education by one level.</p>
+          </div>
+          <button class="age-button page-action-button" type="button" data-go-page="age">
+            <span>Choose this year's activity</span><span aria-hidden="true">→</span>
+          </button>
+        </section>
+      </section>
+
+      <section class="page-view detail-page" data-page-view="assets" hidden>
+        <header class="page-title">
+          <p class="eyebrow">WHAT YOU HAVE</p>
+          <h1>Your <span>assets.</span></h1>
+          <p class="intro">Keep an eye on your savings and the money coming in and going out.</p>
+        </header>
+        <section class="section-card assets-balance">
+          <div class="assets-icon" aria-hidden="true">＄</div>
+          <div>
+            <p class="eyebrow">YOUR SAVINGS</p>
+            <strong id="player-money" class="assets-total">$3,500</strong>
+            <p id="money-note" class="detail-description">A little nest egg</p>
+          </div>
+        </section>
+        <section class="section-card asset-breakdown">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">YEARLY MONEY</p>
+              <h2>Your income and expenses</h2>
+            </div>
+          </div>
+          <div class="asset-row"><span>Job income</span><strong id="asset-income">$0 / year</strong></div>
+          <div class="asset-row"><span>Living costs</span><strong>$18,000 / year</strong></div>
+          <div class="asset-row"><span>Extra work bonus</span><strong id="asset-bonus">$0 this year</strong></div>
+          <p class="detail-description asset-hint">Choose a job on the Jobs page. Your yearly income and expenses update when you finish each year.</p>
+        </section>
+      </section>
+
+      <section class="page-view detail-page admin-page" data-page-view="admin" hidden>
+        <header class="page-title">
+          <p class="eyebrow">GAME MASTER TOOLS</p>
+          <h1>Admin <span>panel.</span></h1>
+          <p class="intro">Directly edit the game state. Changes apply immediately and do not advance the year.</p>
+        </header>
+
+        <form id="admin-player-form" class="section-card admin-card">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">PLAYER CONTROL</p>
+              <h2>Your life</h2>
+            </div>
+            <span class="admin-badge">ADMIN</span>
+          </div>
+          <div class="admin-fields">
+            <label class="admin-field">Age
+              <input name="age" type="number" min="0" max="120" required />
+            </label>
+            <label class="admin-field">Story year
+              <input name="year" type="number" min="1" required />
+            </label>
+            <label class="admin-field">Age limit
+              <input name="ageLimit" type="number" min="1" max="120" required />
+            </label>
+            <label class="admin-field">Money ($)
+              <input name="money" type="number" step="1" required />
+            </label>
+            <label class="admin-field">Job
+              <select name="job"></select>
+            </label>
+            <label class="admin-field">Annual salary ($)
+              <input name="salary" type="number" min="0" step="100" required />
+            </label>
+            <label class="admin-field">Education
+              <select name="education"></select>
+            </label>
+            <label class="admin-field">Activity this year
+              <select name="activity"></select>
+            </label>
+            <label class="admin-field">Happiness
+              <input name="happiness" type="number" min="0" max="100" required />
+            </label>
+            <label class="admin-field">Health
+              <input name="health" type="number" min="0" max="100" required />
+            </label>
+            <label class="admin-field">Looks
+              <input name="looks" type="number" min="0" max="100" required />
+            </label>
+            <label class="admin-field">Smarts
+              <input name="smarts" type="number" min="0" max="100" required />
+            </label>
+            <label class="admin-field">Karma
+              <input name="karma" type="number" min="0" max="100" required />
+            </label>
+            <label class="admin-field">Years in current job
+              <input name="yearsWorked" type="number" min="0" required />
+            </label>
+            <label class="admin-field">Extra-work bonus ($)
+              <input name="extraEarnings" type="number" step="1" required />
+            </label>
+            <label class="admin-check">
+              <input name="finished" type="checkbox" />
+              <span>Mark life as finished</span>
+            </label>
+            <label class="admin-field admin-field-wide">Add journal entry
+              <input name="journalEntry" type="text" maxlength="160" placeholder="Optional: add a memory to the journal" />
+            </label>
+          </div>
+          <div class="admin-footer">
+            <span>Setting an activity marks this year's activity as chosen; it does not apply its effects again.</span>
+            <button class="age-button" type="submit"><span>Apply player changes</span><span aria-hidden="true">✓</span></button>
+          </div>
+        </form>
+
+        <form id="admin-npc-form" class="section-card admin-card">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">NPC CONTROL</p>
+              <h2>Other little lives</h2>
+            </div>
+          </div>
+          <div class="admin-fields npc-admin-fields">
+            <label class="admin-field">Choose a person
+              <select name="person"></select>
+            </label>
+            <label class="admin-field">Name
+              <input name="name" type="text" maxlength="50" required />
+            </label>
+            <label class="admin-field">Avatar emoji
+              <input name="emoji" type="text" maxlength="4" required />
+            </label>
+            <label class="admin-field">Age
+              <input name="age" type="number" min="0" max="120" required />
+            </label>
+            <label class="admin-field">Job
+              <select name="job"></select>
+            </label>
+            <label class="admin-field">Annual salary ($)
+              <input name="salary" type="number" step="100" required />
+            </label>
+            <label class="admin-field">Education
+              <select name="education"></select>
+            </label>
+            <label class="admin-field">Money ($)
+              <input name="money" type="number" step="1" required />
+            </label>
+            <label class="admin-field">Happiness
+              <input name="happiness" type="number" min="0" max="100" required />
+            </label>
+            <label class="admin-field">Health
+              <input name="health" type="number" min="0" max="100" required />
+            </label>
+            <label class="admin-field">Years in current job
+              <input name="yearsWorked" type="number" min="0" required />
+            </label>
+            <label class="admin-field">Personality
+              <select name="trait">
+                <option value="dreamer">Dreamer</option>
+                <option value="ambitious">Ambitious</option>
+                <option value="steady">Steady</option>
+              </select>
+            </label>
+            <label class="admin-field">Life goal
+              <select name="goal">
+                <option value="creative work">Creative work</option>
+                <option value="a good career">A good career</option>
+                <option value="a happy life">A happy life</option>
+              </select>
+            </label>
+            <label class="admin-field admin-field-wide">Current decision
+              <input name="lastChoice" type="text" maxlength="100" required />
+            </label>
+          </div>
+          <div class="admin-footer">
+            <span>Edits here shape what NPCs can afford and what they may decide next year.</span>
+            <button class="age-button" type="submit"><span>Apply NPC changes</span><span aria-hidden="true">✓</span></button>
+          </div>
+        </form>
+      </section>
+
+      <footer class="footer-note">No two lives turn out quite the same. See where yours goes.</footer>
+    </main>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="script.js"></script>
+  </body>
+</html>
