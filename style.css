@@ -81,6 +81,48 @@ button:focus-visible, a:focus-visible { outline: 3px solid #849d77; outline-offs
 .page-title { color: #f2f3ed; }
 .page-title .eyebrow { color: #a7c796; }
 .page-title .intro { color: #b0b4ab; }
+.online-page { padding-bottom: 12px; }
+.online-setup { margin-bottom: 16px; }
+.online-setup h2 { margin-bottom: 7px; }
+.online-setup .detail-description { max-width: 860px; }
+.online-setup code { padding: 2px 5px; border-radius: 4px; background: #f0f1eb; color: #465840; font-size: 0.72rem; }
+.online-setup a { color: var(--green-dark); font-weight: 700; }
+.online-privacy { max-width: 860px; margin: 12px 0 0; padding: 10px 12px; border-left: 3px solid #d5b776; background: #faf7ed; color: #77705f; font-size: 0.7rem; line-height: 1.55; }
+.online-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; gap: 16px; }
+.online-players, .online-chat { min-width: 0; }
+.online-status { margin: 14px 0; color: #84897f; font-size: 0.72rem; line-height: 1.5; }
+.online-status--connected { color: #496d43; }
+.online-status--error { color: #a64e43; }
+.online-name-form, .online-chat-form { margin: 14px 0; }
+.online-label { display: block; margin-bottom: 6px; color: #74796f; font-size: 0.67rem; font-weight: 700; }
+.online-name-row, .online-chat-row { display: flex; align-items: center; gap: 8px; }
+.online-name-row input, .online-chat-row input { width: 100%; min-width: 0; height: 40px; padding: 0 11px; border: 1px solid #e5e6dd; border-radius: 8px; background: #fff; color: #343a32; font: inherit; font-size: 0.75rem; }
+.online-name-row input:focus, .online-chat-row input:focus { border-color: #9eb493; outline: 2px solid rgba(132, 157, 119, 0.2); }
+.online-name-row .age-button, .online-chat-row .age-button { flex: 0 0 auto; min-height: 40px; }
+.online-player-list { display: grid; gap: 8px; }
+.online-empty { margin: 0; padding: 15px 3px; color: #999c93; font-size: 0.72rem; }
+.online-player-card { padding: 12px; border: 1px solid #eeeee7; border-radius: 11px; }
+.online-player-heading { display: flex; align-items: center; gap: 8px; }
+.online-player-name { overflow: hidden; color: #40473c; font-size: 0.78rem; text-overflow: ellipsis; }
+.online-presence-badge { margin-left: auto; color: #67805f; font-size: 0.54rem; font-weight: 800; letter-spacing: 0.08em; }
+.online-player-summary { margin: 7px 0 0; color: #8a8e84; font-size: 0.67rem; }
+.online-visit-button { margin-top: 9px; padding: 6px 9px; border: 1px solid #e4e9df; border-radius: 7px; background: #f8faf6; color: var(--green-dark); cursor: pointer; font-size: 0.65rem; font-weight: 700; }
+.online-visit-button:hover { background: #edf4e9; }
+.online-chat-messages { display: flex; min-height: 230px; max-height: 360px; flex-direction: column; gap: 8px; overflow-y: auto; margin: 14px 0; padding: 0 3px 4px 0; list-style: none; }
+.online-chat-message { position: relative; max-width: 92%; align-self: flex-start; padding: 9px 11px 8px; border: 1px solid #eeeee7; border-radius: 10px 10px 10px 3px; background: #fff; }
+.online-chat-message--self { align-self: flex-end; border-color: #dce8d5; background: #f2f7ef; }
+.online-chat-nickname { color: #526e50; font-size: 0.63rem; }
+.online-chat-message p { margin: 4px 0 0; overflow-wrap: anywhere; color: #50564b; font-size: 0.72rem; line-height: 1.45; }
+.online-chat-time { display: block; margin-top: 5px; color: #a1a499; font-size: 0.53rem; text-align: right; }
+.online-chat-note { margin: 0; color: #999c93; font-size: 0.61rem; }
+.online-visit-dialog { width: min(440px, calc(100% - 28px)); padding: 24px; border: 1px solid var(--line); border-radius: 17px; background: var(--paper); color: var(--ink); box-shadow: 0 20px 70px rgba(0, 0, 0, 0.3); }
+.online-visit-dialog::backdrop { background: rgba(0, 0, 0, 0.65); }
+.online-visit-dialog h2 { margin-bottom: 5px; }
+.online-dialog-close { float: right; color: #5c6258; }
+.online-visit-dialog h3 { margin: 20px 0 8px; color: #62685e; font-size: 0.75rem; }
+.online-visit-stats { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 14px; }
+.online-stat { padding: 7px 9px; border-radius: 999px; background: #f1f5ed; color: #55704e; font-size: 0.63rem; font-weight: 700; }
+.online-visit-journal { display: grid; gap: 7px; margin: 0; padding-left: 18px; color: #62685e; font-size: 0.7rem; line-height: 1.5; }
 .detail-page > .section-card + .section-card { margin-top: 16px; }
 .detail-card { display: flex; align-items: center; gap: 18px; }
 .detail-icon, .assets-icon { display: grid; width: 52px; height: 52px; flex: 0 0 auto; place-items: center; border-radius: 15px; background: #f2eff9; color: #8678a4; font-size: 1.4rem; }
@@ -260,6 +302,7 @@ h2 { margin: 0; font-family: "DM Serif Display", Georgia, serif; font-size: 1.33
 }
 
 @media (max-width: 850px) {
+  .online-layout { grid-template-columns: minmax(0, 1fr); }
   .main-grid { grid-template-columns: minmax(0, 1fr); }
   .people-section { order: 2; }
   .npc-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -276,6 +319,8 @@ h2 { margin: 0; font-family: "DM Serif Display", Georgia, serif; font-size: 1.33
   .life-menu { gap: 2px; margin: 0 -3px; padding: 8px 0; }
   .menu-label { margin-right: 4px; font-size: 0.54rem; }
   .menu-link { padding: 7px 9px; font-size: 0.67rem; }
+  .online-name-row, .online-chat-row { align-items: stretch; }
+  .online-name-row .age-button, .online-chat-row .age-button { gap: 7px; padding: 8px 10px; font-size: 0.63rem; }
   .welcome-row { align-items: flex-start; padding: 27px 0 20px; }
   .intro { max-width: 270px; font-size: 0.78rem; line-height: 1.5; }
   .year-card { min-width: 100px; padding: 12px 10px; }

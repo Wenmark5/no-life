@@ -461,6 +461,24 @@ function render() {
   renderJournal();
   renderAdminPlayer();
   renderAdminNpcFields();
+  window.dispatchEvent(new CustomEvent('little-lives:profile-change', {
+    detail: getOnlineProfile(),
+  }));
+}
+
+function getOnlineProfile() {
+  const job = CAREERS.find((career) => career.id === state.jobId);
+  const activity = ACTIVITIES.find((item) => item.id === state.selectedActivity);
+  return {
+    age: state.age,
+    job: job?.title || 'Exploring options',
+    education: EDUCATION_LEVELS[state.education],
+    health: state.health,
+    happiness: state.happiness,
+    year: state.year,
+    recentMoments: state.journal.slice(0, 3).map((entry) => entry.text),
+    currentActivity: activity?.title || null,
+  };
 }
 
 function chooseCareer(career) {
@@ -661,5 +679,6 @@ elements.activityCategories.forEach((button) => {
 elements.ageButton.addEventListener('click', finishYear);
 elements.restart.addEventListener('click', restartGame);
 setupAdminControls();
+window.littleLivesGetOnlineProfile = getOnlineProfile;
 showPage(currentPage);
 render();

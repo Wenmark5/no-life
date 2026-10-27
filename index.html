@@ -26,11 +26,72 @@
       <nav class="life-menu" aria-label="Life pages">
         <span class="menu-label">YOUR LIFE</span>
         <button class="menu-link" type="button" data-page="age" aria-current="page">Age</button>
+        <button class="menu-link" type="button" data-page="online">Online</button>
         <button class="menu-link" type="button" data-page="jobs">Jobs</button>
         <button class="menu-link" type="button" data-page="education">Education</button>
         <button class="menu-link" type="button" data-page="assets">Assets</button>
         <button class="menu-link admin-menu-link" type="button" data-page="admin">Admin</button>
       </nav>
+
+      <section class="page-view online-page" data-page-view="online" hidden>
+        <header class="page-title">
+          <p class="eyebrow">LIVES, TOGETHER</p>
+          <h1>Meet other <span>players.</span></h1>
+          <p class="intro">Visit their lives and chat in the public Little Lives lobby.</p>
+        </header>
+        <section class="section-card online-setup" id="online-setup">
+          <p class="eyebrow">ONE-TIME SETUP</p>
+          <h2>Connect a realtime lobby</h2>
+          <p class="detail-description">The game is hosted on GitHub Pages. To turn on multiplayer, create a free Supabase project and add its Project URL and public anon/publishable key to <code>online-config.js</code>, then publish the updated files. Follow the <a href="https://github.com/Wenmark5/no-life/blob/main/ONLINE-SETUP.md" target="_blank" rel="noopener">online setup guide</a>.</p>
+          <p class="online-privacy">The lobby is public. Other online players can see your nickname, age, job, education, health, happiness, and recent journal moments. Don’t share private information. Chat is temporary and only available while players are online.</p>
+        </section>
+        <section class="online-layout">
+          <div class="section-card online-players">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">PUBLIC LOBBY</p>
+                <h2>Players online</h2>
+              </div>
+              <span id="online-player-count" class="people-count">0 PLAYERS</span>
+            </div>
+            <p id="online-status" class="online-status" role="status" aria-live="polite">Multiplayer is not configured yet.</p>
+            <form id="online-name-form" class="online-name-form">
+              <label class="online-label" for="online-nickname">Your lobby nickname</label>
+              <div class="online-name-row">
+                <input id="online-nickname" name="nickname" type="text" minlength="2" maxlength="20" autocomplete="nickname" placeholder="Choose a nickname" required />
+                <button id="online-join-button" class="age-button" type="submit"><span>Join lobby</span><span aria-hidden="true">→</span></button>
+              </div>
+            </form>
+            <div id="online-player-list" class="online-player-list" aria-live="polite"></div>
+          </div>
+          <div class="section-card online-chat">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">SAY HELLO</p>
+                <h2>Lobby chat</h2>
+              </div>
+            </div>
+            <ol id="online-chat-messages" class="online-chat-messages" aria-live="polite" aria-label="Recent lobby messages"></ol>
+            <form id="online-chat-form" class="online-chat-form">
+              <label class="online-label" for="online-chat-input">Message</label>
+              <div class="online-chat-row">
+                <input id="online-chat-input" name="message" type="text" maxlength="240" autocomplete="off" placeholder="Write a friendly message..." required disabled />
+                <button class="age-button" type="submit" disabled><span>Send</span><span aria-hidden="true">↑</span></button>
+              </div>
+            </form>
+            <p class="online-chat-note">Messages are temporary and visible to everyone in the lobby.</p>
+          </div>
+        </section>
+        <dialog id="online-visit-dialog" class="online-visit-dialog">
+          <form method="dialog"><button class="quiet-button online-dialog-close" aria-label="Close profile">Close</button></form>
+          <p class="eyebrow">A LITTLE LIFE</p>
+          <h2 id="online-visit-name"></h2>
+          <p id="online-visit-summary" class="detail-description"></p>
+          <div id="online-visit-stats" class="online-visit-stats"></div>
+          <h3>Recent moments</h3>
+          <ol id="online-visit-journal" class="online-visit-journal"></ol>
+        </dialog>
+      </section>
 
       <section class="page-view age-page" data-page-view="age">
         <div class="welcome-row">
@@ -344,5 +405,8 @@
     </main>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
     <script src="script.js"></script>
+    <script src="online-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="online.js"></script>
   </body>
 </html>
