@@ -320,7 +320,7 @@ h2 { margin: 0; font-family: "DM Serif Display", Georgia, serif; font-size: 1.33
   .menu-label { margin-right: 4px; font-size: 0.54rem; }
   .menu-link { padding: 7px 9px; font-size: 0.67rem; }
   .online-name-row, .online-chat-row { align-items: stretch; }
-  .online-name-row .age-button, .online-chat-row .age-button { gap: 7px; padding: 8px 10px; font-size: 0.63rem; }
+  .online-name-row .age-button, .online-chat-row .age-button { width: auto; justify-content: center; gap: 7px; padding: 8px 10px; font-size: 0.63rem; }
   .welcome-row { align-items: flex-start; padding: 27px 0 20px; }
   .intro { max-width: 270px; font-size: 0.78rem; line-height: 1.5; }
   .year-card { min-width: 100px; padding: 12px 10px; }
