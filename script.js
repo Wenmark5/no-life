@@ -123,7 +123,7 @@ function showPage(page) {
   const viewExists = elements.pageViews.some((view) => view.dataset.pageView === page);
   if (!viewExists) return;
   if (page === 'admin' && !window.littleLivesIsAdmin) {
-    showToast('Admin access is limited to the game owner.');
+    showToast('Enter the Admin passcode to open Admin.');
     return;
   }
 
