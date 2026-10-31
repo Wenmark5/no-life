@@ -8,12 +8,13 @@ The online lobby uses Supabase Realtime. GitHub Pages serves the game files, whi
 2. In the Supabase dashboard, copy the project's **Project URL** and **publishable key** (or legacy **anon** key). These are browser-side public values. **Never use or publish a `service_role` or secret key.**
 3. Add the values to `online-config.js`. The owner email hash is configured there separately; do not put the owner's email address in the public configuration.
 4. In Supabase Auth, ensure the owner email is an existing user. Sign-in requests disable account creation.
-5. In **Authentication → Email Templates**, configure the Magic Link template to include `{{ .Token }}` so the email contains a six-digit code. The built-in template might send a sign-in link instead. If Supabase requires custom SMTP to edit or send the template, configure an SMTP provider in the Supabase dashboard; do not put SMTP credentials in this repository.
-6. Publish the updated game files to the root of the `main` branch on GitHub.
+5. In **Authentication → SMTP Settings**, enable custom SMTP and add the credentials from your email provider. Supabase's built-in sender only delivers to authorized project team addresses and is limited to two emails per hour; it is not intended for reliable delivery to Gmail accounts. Never put SMTP credentials in this repository.
+6. In **Authentication → Email Templates**, configure the Magic Link template to include `{{ .Token }}` so the email contains a six-digit code. The built-in template might send a sign-in link instead. Custom SMTP is required to edit email templates.
+7. Publish the updated game files to the root of the `main` branch on GitHub.
 
 Players can choose a nickname on the Online page and select **Join lobby**. To open Admin, click **Owner sign-in**, enter the owner email, then enter the code from the email. The game does not request a redirect URL; code verification happens in the same page. An email is sent only after the owner submits the email form successfully.
 
-The project must allow public Realtime channels. The game uses one public channel and does not create database tables or persist chat. If joining fails, check that Realtime is enabled and that the URL/key were copied correctly. If a code email does not arrive, verify Auth email delivery, SMTP configuration, and that the Magic Link template contains `{{ .Token }}`.
+The project must allow public Realtime channels. The game uses one public channel and does not create database tables or persist chat. If joining fails, check that Realtime is enabled and that the URL/key were copied correctly. If a code email does not arrive, check Spam/All Mail, verify Auth email delivery and SMTP configuration, and confirm the Magic Link template contains `{{ .Token }}`. Supabase's built-in sender rejects non-team recipient addresses and has a two-email-per-hour project limit.
 
 ## Admin security limitations
 

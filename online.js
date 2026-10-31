@@ -82,6 +82,18 @@ function getAdminEmailHash() {
     : '';
 }
 
+function getOwnerEmailErrorMessage(error) {
+  const message = typeof error?.message === 'string' ? error.message : 'Unknown email delivery error.';
+  const normalizedMessage = message.toLowerCase();
+  if (error?.status === 429 || normalizedMessage.includes('rate limit') || normalizedMessage.includes('too many requests')) {
+    return 'Supabase has reached its built-in email limit (2 messages per hour). Wait before trying again, and configure custom SMTP in Supabase Authentication → SMTP Settings for reliable Gmail delivery.';
+  }
+  if (normalizedMessage.includes('email address not authorized') || normalizedMessage.includes('email not authorized')) {
+    return 'Supabase’s built-in email service only sends to authorized project team addresses. Configure custom SMTP in Supabase Authentication → SMTP Settings to deliver codes to Gmail.';
+  }
+  return `Supabase could not send the owner code: ${message}`;
+}
+
 async function updateOwnerAccess(session) {
   const email = session?.user?.email;
   const adminEmailHash = getAdminEmailHash();
@@ -340,10 +352,10 @@ onlineElements.ownerLoginForm.addEventListener('submit', async (event) => {
     onlineElements.ownerLoginForm.hidden = true;
     onlineElements.ownerCodeForm.hidden = false;
     onlineElements.ownerCode.value = '';
-    onlineElements.ownerAccessStatus.textContent = `A one-time sign-in code was sent to ${email}. Enter it below; you will stay on this page.`;
+    onlineElements.ownerAccessStatus.textContent = `Supabase accepted the code request for ${email}. Check Spam or All Mail if it does not arrive; you will stay on this page.`;
     onlineElements.ownerCode.focus();
   } catch (error) {
-    onlineElements.ownerAccessStatus.textContent = `Could not send the owner code: ${error.message}`;
+    onlineElements.ownerAccessStatus.textContent = getOwnerEmailErrorMessage(error);
   }
 });
 
@@ -385,11 +397,11 @@ onlineElements.ownerResendButton.addEventListener('click', async () => {
       options: { shouldCreateUser: false },
     });
     if (error) throw error;
-    onlineElements.ownerAccessStatus.textContent = `A new sign-in code was sent to ${pendingOwnerEmail}.`;
+    onlineElements.ownerAccessStatus.textContent = `Supabase accepted a new code request for ${pendingOwnerEmail}. Check Spam or All Mail if it does not arrive.`;
     onlineElements.ownerCode.value = '';
     onlineElements.ownerCode.focus();
   } catch (error) {
-    onlineElements.ownerAccessStatus.textContent = `Could not resend the owner code: ${error.message}`;
+    onlineElements.ownerAccessStatus.textContent = getOwnerEmailErrorMessage(error);
   }
 });
 

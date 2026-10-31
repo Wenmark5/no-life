@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f5f4ed" />
     <title>Little Lives — Life Simulator</title>
-    <link rel="stylesheet" href="style.css?v=owner-otp-1" />
+    <link rel="stylesheet" href="style.css?v=owner-otp-2" />
   </head>
   <body>
     <main class="game-shell">
@@ -422,11 +422,11 @@
         <button id="owner-resend-button" class="quiet-button owner-signout-button" type="button">Send a new code</button>
       </form>
       <button id="owner-signout-button" class="quiet-button owner-signout-button" type="button" hidden>Sign out</button>
-      <p class="online-chat-note">Only the verified owner email can open Admin. The Admin panel changes this browser’s local game only.</p>
+      <p class="online-chat-note">Supabase’s built-in email service only sends to authorized project team addresses and is limited to 2 emails per hour. Configure custom SMTP in Supabase Authentication → SMTP Settings to deliver codes reliably to Gmail. Never add SMTP credentials to this game’s public files. The Admin panel changes this browser’s local game only.</p>
     </dialog>
-    <script src="script.js?v=owner-otp-1"></script>
-    <script src="online-config.js?v=owner-otp-1"></script>
+    <script src="script.js?v=owner-otp-2"></script>
+    <script src="online-config.js?v=owner-otp-2"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="online.js?v=owner-otp-1"></script>
+    <script src="online.js?v=owner-otp-2"></script>
   </body>
 </html>
