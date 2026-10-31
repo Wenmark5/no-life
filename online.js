@@ -27,6 +27,10 @@ const onlineElements = {
   ownerLoginForm: document.getElementById('owner-login-form'),
   ownerEmail: document.getElementById('owner-email'),
   ownerLoginButton: document.getElementById('owner-login-button'),
+  ownerCodeForm: document.getElementById('owner-code-form'),
+  ownerCode: document.getElementById('owner-code'),
+  ownerVerifyButton: document.getElementById('owner-verify-button'),
+  ownerResendButton: document.getElementById('owner-resend-button'),
   ownerSignoutButton: document.getElementById('owner-signout-button'),
 };
 
@@ -36,6 +40,7 @@ let connected = false;
 let lastMessageAt = 0;
 let profileTimer = 0;
 let ownerCheckVersion = 0;
+let pendingOwnerEmail = '';
 
 function setOnlineStatus(message, kind = '') {
   onlineElements.status.textContent = message;
@@ -95,6 +100,7 @@ async function updateOwnerAccess(session) {
       }));
       onlineElements.ownerAccessButton.textContent = 'Owner sign-in';
       onlineElements.ownerLoginForm.hidden = false;
+      onlineElements.ownerCodeForm.hidden = true;
       onlineElements.ownerSignoutButton.hidden = !session;
       onlineElements.ownerAccessStatus.textContent = `Could not verify owner access: ${error.message}`;
       return;
@@ -108,6 +114,7 @@ async function updateOwnerAccess(session) {
   }));
   onlineElements.ownerAccessButton.textContent = isOwner ? 'Owner access' : 'Owner sign-in';
   onlineElements.ownerLoginForm.hidden = isOwner;
+  onlineElements.ownerCodeForm.hidden = isOwner || !pendingOwnerEmail;
   onlineElements.ownerSignoutButton.hidden = !session;
   onlineElements.ownerAccessStatus.textContent = isOwner
     ? 'Owner verified. The Admin page is now available.'
@@ -329,15 +336,65 @@ onlineElements.ownerLoginForm.addEventListener('submit', async (event) => {
       return;
     }
     const supabase = getSupabaseClient();
-    const redirectTo = `${window.location.origin}${window.location.pathname}`;
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: redirectTo },
+      options: { shouldCreateUser: false },
     });
     if (error) throw error;
-    onlineElements.ownerAccessStatus.textContent = 'Check your email for the secure sign-in link. It expires and can only be used once.';
+    pendingOwnerEmail = email;
+    onlineElements.ownerLoginForm.hidden = true;
+    onlineElements.ownerCodeForm.hidden = false;
+    onlineElements.ownerCode.value = '';
+    onlineElements.ownerAccessStatus.textContent = `A six-digit sign-in code was sent to ${email}.`;
+    onlineElements.ownerCode.focus();
   } catch (error) {
-    onlineElements.ownerAccessStatus.textContent = `Could not send the owner sign-in link: ${error.message}`;
+    onlineElements.ownerAccessStatus.textContent = `Could not send the owner code: ${error.message}`;
+  }
+});
+
+onlineElements.ownerCodeForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const code = onlineElements.ownerCode.value.trim();
+  if (!pendingOwnerEmail || !/^\d{6}$/.test(code)) {
+    onlineElements.ownerAccessStatus.textContent = 'Enter the six-digit code sent to your owner email.';
+    return;
+  }
+
+  try {
+    const supabase = getSupabaseClient();
+    const { data, error } = await supabase.auth.verifyOtp({
+      email: pendingOwnerEmail,
+      token: code,
+      type: 'email',
+    });
+    if (error) throw error;
+    await updateOwnerAccess(data.session);
+    if (window.littleLivesIsAdmin) {
+      pendingOwnerEmail = '';
+      onlineElements.ownerCodeForm.hidden = true;
+      onlineElements.ownerAccessStatus.textContent = 'Owner verified. The Admin page is now available.';
+    } else {
+      onlineElements.ownerAccessStatus.textContent = 'The code was accepted, but this account is not authorized as the game owner.';
+    }
+  } catch (error) {
+    onlineElements.ownerAccessStatus.textContent = `Could not verify the owner code: ${error.message}`;
+  }
+});
+
+onlineElements.ownerResendButton.addEventListener('click', async () => {
+  if (!pendingOwnerEmail) return;
+  try {
+    const supabase = getSupabaseClient();
+    const { error } = await supabase.auth.signInWithOtp({
+      email: pendingOwnerEmail,
+      options: { shouldCreateUser: false },
+    });
+    if (error) throw error;
+    onlineElements.ownerAccessStatus.textContent = `A new six-digit code was sent to ${pendingOwnerEmail}.`;
+    onlineElements.ownerCode.value = '';
+    onlineElements.ownerCode.focus();
+  } catch (error) {
+    onlineElements.ownerAccessStatus.textContent = `Could not resend the owner code: ${error.message}`;
   }
 });
 

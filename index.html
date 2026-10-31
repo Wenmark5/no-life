@@ -413,10 +413,16 @@
       <form id="owner-login-form" class="owner-login-form">
         <label class="online-label" for="owner-email">Owner email</label>
         <input id="owner-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required />
-        <button id="owner-login-button" class="age-button" type="submit"><span>Email me a sign-in link</span><span aria-hidden="true">→</span></button>
+        <button id="owner-login-button" class="age-button" type="submit"><span>Send six-digit code</span><span aria-hidden="true">→</span></button>
+      </form>
+      <form id="owner-code-form" class="owner-login-form" hidden>
+        <label class="online-label" for="owner-code">Six-digit email code</label>
+        <input id="owner-code" name="code" type="text" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" autocomplete="one-time-code" placeholder="123456" required />
+        <button id="owner-verify-button" class="age-button" type="submit"><span>Verify and open Admin</span><span aria-hidden="true">✓</span></button>
+        <button id="owner-resend-button" class="quiet-button owner-signout-button" type="button">Send a new code</button>
       </form>
       <button id="owner-signout-button" class="quiet-button owner-signout-button" type="button" hidden>Sign out</button>
-      <p class="online-chat-note">Only the verified owner account can open the Admin panel. Never share your sign-in link.</p>
+      <p class="online-chat-note">Only the verified owner email can open the Admin panel. Never share your sign-in code.</p>
     </dialog>
     <script src="script.js"></script>
     <script src="online-config.js"></script>

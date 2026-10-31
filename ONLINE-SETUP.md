@@ -1,6 +1,6 @@
 # Little Lives online lobby setup
 
-The online lobby uses Supabase Realtime. GitHub Pages serves the game files, while Supabase carries live player presence and temporary chat messages. Players do not need accounts. The game owner signs in with a verified email link to access the private Admin page.
+The online lobby uses Supabase Realtime. GitHub Pages serves the game files, while Supabase carries live player presence and temporary chat messages. Players do not need accounts. The game owner signs in with a verified six-digit email code to access the private Admin page.
 
 ## Create the shared lobby
 
@@ -17,9 +17,18 @@ The online lobby uses Supabase Realtime. GitHub Pages serves the game files, whi
    ```
 
    To make the email hash, normalize the owner's email to lowercase and remove surrounding spaces, then calculate its SHA-256 hash as 64 lowercase hexadecimal characters. The raw email is not stored in the public game files.
-4. In Supabase **Authentication → URL Configuration**, set the Site URL to `https://wenmark5.github.io/no-life/` and add that same URL to the allowed redirect URLs. This lets the one-time owner sign-in link return to the game.
+4. In Supabase **Authentication → Email Templates → Magic Link**, change the email body to include the one-time code, for example:
+
+   ```html
+   <h2>Your Little Lives sign-in code</h2>
+   <p>Enter this six-digit code in the game to open the Admin panel:</p>
+   <p><strong>{{ .Token }}</strong></p>
+   <p>This code expires shortly. Never share it with anyone.</p>
+   ```
+
+   Make sure the template uses `{{ .Token }}` and does not rely on `{{ .ConfirmationURL }}`. Supabase sends a numeric code; the game verifies it directly, so no sign-in link or redirect URL configuration is required.
 5. Publish the updated `index.html`, `script.js`, `style.css`, `online.js`, and `online-config.js` to the root of the `main` branch on GitHub.
-6. Players can choose a nickname on the Online page and select **Join lobby**. To access Admin, the owner selects **Owner sign-in** and uses the configured email's secure sign-in link.
+6. Players can choose a nickname on the Online page and select **Join lobby**. To access Admin, the owner selects **Owner sign-in**, requests a code, and enters the six digits received at the configured email.
 
 The project must allow public Realtime channels. The game uses one public channel and does not create database tables or persist chat. If joining fails, check that Realtime is enabled for the Supabase project and that the URL/key were copied correctly.
 
