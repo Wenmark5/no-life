@@ -125,6 +125,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid #849d77; outline-offs
 .online-visit-journal { display: grid; gap: 7px; margin: 0; padding-left: 18px; color: #62685e; font-size: 0.7rem; line-height: 1.5; }
 .owner-access-dialog h2 { margin-bottom: 8px; }
 .owner-login-form { display: grid; gap: 9px; margin: 16px 0 10px; }
+.owner-login-form[hidden] { display: none; }
 .owner-login-form input { width: 100%; height: 40px; padding: 0 11px; border: 1px solid #e5e6dd; border-radius: 8px; background: #fff; color: #343a32; font: inherit; font-size: 0.75rem; }
 .owner-login-form input:focus { border-color: #9eb493; outline: 2px solid rgba(132, 157, 119, 0.2); }
 .owner-login-form .age-button { justify-content: space-between; }

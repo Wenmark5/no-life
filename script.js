@@ -123,7 +123,7 @@ function showPage(page) {
   const viewExists = elements.pageViews.some((view) => view.dataset.pageView === page);
   if (!viewExists) return;
   if (page === 'admin' && !window.littleLivesIsAdmin) {
-    showToast('Enter the Admin passcode to open Admin.');
+    showToast('Verify the owner email to open Admin.');
     return;
   }
 

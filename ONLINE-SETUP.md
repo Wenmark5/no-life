@@ -1,20 +1,23 @@
-# Little Lives online lobby setup
+# Little Lives online setup
 
-The online lobby uses Supabase Realtime. GitHub Pages serves the game files, while Supabase carries live player presence and temporary chat messages. Players do not need accounts. Admin is behind a four-digit passcode prompt.
+The online lobby uses Supabase Realtime. GitHub Pages serves the game files, while Supabase carries live player presence and temporary chat messages. Players do not need accounts to use the lobby. Owner access to the local Admin page uses a six-digit email code sent through Supabase Auth.
 
-## Create the shared lobby
+## Configure Supabase
 
-1. Create a free project at [supabase.com](https://supabase.com/).
-2. In the Supabase dashboard, copy the project's **Project URL** and its **publishable key** (or legacy **anon** key). These are browser-side public values. **Never use or publish a `service_role` or secret key.**
-3. Open `online-config.js` and fill in the two values:
+1. Create a project at [supabase.com](https://supabase.com/).
+2. In the Supabase dashboard, copy the project's **Project URL** and **publishable key** (or legacy **anon** key). These are browser-side public values. **Never use or publish a `service_role` or secret key.**
+3. Add the values to `online-config.js`. The owner email hash is configured there separately; do not put the owner's email address in the public configuration.
+4. In Supabase Auth, ensure the owner email is an existing user. Sign-in requests disable account creation.
+5. In **Authentication → Email Templates**, configure the Magic Link template to include `{{ .Token }}` so the email contains a six-digit code. The built-in template might send a sign-in link instead. If Supabase requires custom SMTP to edit or send the template, configure an SMTP provider in the Supabase dashboard; do not put SMTP credentials in this repository.
+6. Publish the updated game files to the root of the `main` branch on GitHub.
 
-   The Admin passcode is `0000`.
-4. Publish the updated game files to the root of the `main` branch on GitHub.
-5. Players can choose a nickname on the Online page and select **Join lobby**. To open Admin, click **Admin passcode** and enter `0000`.
+Players can choose a nickname on the Online page and select **Join lobby**. To open Admin, click **Owner sign-in**, enter the owner email, then enter the code from the email. The game does not request a redirect URL; code verification happens in the same page. An email is sent only after the owner submits the email form successfully.
 
-The project must allow public Realtime channels. The game uses one public channel and does not create database tables or persist chat. If joining fails, check that Realtime is enabled for the Supabase project and that the URL/key were copied correctly.
+The project must allow public Realtime channels. The game uses one public channel and does not create database tables or persist chat. If joining fails, check that Realtime is enabled and that the URL/key were copied correctly. If a code email does not arrive, verify Auth email delivery, SMTP configuration, and that the Magic Link template contains `{{ .Token }}`.
 
-The passcode check is implemented in browser-side JavaScript on a public website. It is only a casual screen lock: anyone can inspect the published code or bypass the check. Do not use it to protect private data or important controls. The Admin panel only edits that browser's local game and does not grant control over other players' lives. Real owner-only security requires server-side authentication and authorization.
+## Admin security limitations
+
+The email-code flow verifies an authenticated Supabase session and compares its email with the configured owner email hash. However, this is a static website: the Admin panel only edits the current browser's local game and does not grant control over other players' lives. Do not use this client-side gate to protect server data or privileged backend actions. Those require server-side authorization and policies.
 
 ## Privacy and limitations
 

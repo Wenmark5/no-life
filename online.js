@@ -1,6 +1,5 @@
 const ONLINE_ROOM = 'little-lives-public-lobby-v1';
 const MAX_CHAT_MESSAGES = 50;
-const ADMIN_PASSCODE = '0000';
 const PLAYER_ID = window.crypto?.randomUUID
   ? window.crypto.randomUUID()
   : `guest-${Math.random().toString(36).slice(2)}-${Date.now()}`;
@@ -26,8 +25,11 @@ const onlineElements = {
   ownerAccessDialog: document.getElementById('owner-access-dialog'),
   ownerAccessStatus: document.getElementById('owner-access-status'),
   ownerLoginForm: document.getElementById('owner-login-form'),
-  ownerPasscode: document.getElementById('owner-passcode'),
+  ownerEmail: document.getElementById('owner-email'),
   ownerLoginButton: document.getElementById('owner-login-button'),
+  ownerCodeForm: document.getElementById('owner-code-form'),
+  ownerCode: document.getElementById('owner-code'),
+  ownerResendButton: document.getElementById('owner-resend-button'),
   ownerSignoutButton: document.getElementById('owner-signout-button'),
 };
 
@@ -36,6 +38,7 @@ let channel = null;
 let connected = false;
 let lastMessageAt = 0;
 let profileTimer = 0;
+let pendingOwnerEmail = '';
 
 function setOnlineStatus(message, kind = '') {
   onlineElements.status.textContent = message;
@@ -64,17 +67,53 @@ function getSupabaseClient() {
   return client;
 }
 
-function setAdminAccess(isAdmin) {
+async function hashEmail(email) {
+  const normalizedEmail = email.trim().toLowerCase();
+  const bytes = new TextEncoder().encode(normalizedEmail);
+  const digest = await window.crypto.subtle.digest('SHA-256', bytes);
+  return [...new Uint8Array(digest)]
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+function getAdminEmailHash() {
+  return typeof onlineConfig.adminEmailHash === 'string'
+    ? onlineConfig.adminEmailHash.trim().toLowerCase()
+    : '';
+}
+
+async function updateOwnerAccess(session) {
+  const email = session?.user?.email;
+  const adminEmailHash = getAdminEmailHash();
+  let isAdmin = false;
+  if (email && /^[a-f0-9]{64}$/.test(adminEmailHash)) {
+    try {
+      isAdmin = await hashEmail(email) === adminEmailHash;
+    } catch (error) {
+      setAdminAccess(false, session);
+      onlineElements.ownerAccessStatus.textContent = `Could not verify owner email: ${error.message}`;
+      return;
+    }
+  }
+  setAdminAccess(isAdmin, session);
+}
+
+function setAdminAccess(isAdmin, session = null) {
   window.littleLivesIsAdmin = isAdmin;
   window.dispatchEvent(new CustomEvent('little-lives:admin-access-change', {
     detail: isAdmin,
   }));
-  onlineElements.ownerAccessButton.textContent = isAdmin ? 'Admin unlocked' : 'Admin passcode';
+  onlineElements.ownerAccessButton.textContent = isAdmin ? 'Owner access' : 'Owner sign-in';
   onlineElements.ownerLoginForm.hidden = isAdmin;
-  onlineElements.ownerSignoutButton.hidden = !isAdmin;
+  onlineElements.ownerCodeForm.hidden = isAdmin || !pendingOwnerEmail;
+  onlineElements.ownerSignoutButton.hidden = !isAdmin && !session;
   onlineElements.ownerAccessStatus.textContent = isAdmin
-    ? 'Admin unlocked for this browser session.'
-    : 'Enter the four-digit passcode to open Admin.';
+    ? 'Owner verified. The Admin page is now available.'
+    : session
+      ? 'This account does not have owner access. Sign out and use the owner email.'
+      : getAdminEmailHash()
+        ? 'Enter the owner email to receive a one-time sign-in code.'
+        : 'Owner access is not configured.';
 }
 
 function readCurrentProfile() {
@@ -273,28 +312,99 @@ onlineElements.ownerAccessButton.addEventListener('click', () => {
   if (window.littleLivesIsAdmin) {
     onlineElements.ownerSignoutButton.focus();
   } else {
-    onlineElements.ownerPasscode.focus();
+    (pendingOwnerEmail ? onlineElements.ownerCode : onlineElements.ownerEmail).focus();
   }
 });
 
-onlineElements.ownerLoginForm.addEventListener('submit', (event) => {
+onlineElements.ownerLoginForm.addEventListener('submit', async (event) => {
   event.preventDefault();
-  if (onlineElements.ownerPasscode.value !== ADMIN_PASSCODE) {
-    onlineElements.ownerAccessStatus.textContent = 'Incorrect passcode. Try again.';
-    onlineElements.ownerPasscode.value = '';
-    onlineElements.ownerPasscode.focus();
+  const adminEmailHash = getAdminEmailHash();
+  if (!/^[a-f0-9]{64}$/.test(adminEmailHash)) {
+    onlineElements.ownerAccessStatus.textContent = 'Owner access is not configured. Contact the game owner.';
     return;
   }
-  setAdminAccess(true);
-  onlineElements.ownerPasscode.value = '';
-  onlineElements.ownerAccessDialog.close();
-  onlineElements.ownerAccessButton.focus();
+
+  const email = onlineElements.ownerEmail.value.trim();
+  try {
+    if (await hashEmail(email) !== adminEmailHash) {
+      onlineElements.ownerAccessStatus.textContent = 'That email is not authorized for owner access.';
+      return;
+    }
+    const supabase = getSupabaseClient();
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: false },
+    });
+    if (error) throw error;
+    pendingOwnerEmail = email;
+    onlineElements.ownerLoginForm.hidden = true;
+    onlineElements.ownerCodeForm.hidden = false;
+    onlineElements.ownerCode.value = '';
+    onlineElements.ownerAccessStatus.textContent = `A one-time sign-in code was sent to ${email}. Enter it below; you will stay on this page.`;
+    onlineElements.ownerCode.focus();
+  } catch (error) {
+    onlineElements.ownerAccessStatus.textContent = `Could not send the owner code: ${error.message}`;
+  }
 });
 
-onlineElements.ownerSignoutButton.addEventListener('click', () => {
-  setAdminAccess(false);
-  onlineElements.ownerPasscode.value = '';
-  onlineElements.ownerAccessDialog.close();
+onlineElements.ownerCodeForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const code = onlineElements.ownerCode.value.trim();
+  if (!pendingOwnerEmail || !/^\d{6}$/.test(code)) {
+    onlineElements.ownerAccessStatus.textContent = 'Enter the six-digit code sent to your owner email.';
+    return;
+  }
+  try {
+    const supabase = getSupabaseClient();
+    const { data, error } = await supabase.auth.verifyOtp({
+      email: pendingOwnerEmail,
+      token: code,
+      type: 'email',
+    });
+    if (error) throw error;
+    await updateOwnerAccess(data.session);
+    if (window.littleLivesIsAdmin) {
+      pendingOwnerEmail = '';
+      onlineElements.ownerCodeForm.hidden = true;
+      onlineElements.ownerAccessDialog.close();
+      onlineElements.ownerAccessButton.focus();
+    } else {
+      onlineElements.ownerAccessStatus.textContent = 'The code was accepted, but this account is not authorized as the game owner.';
+    }
+  } catch (error) {
+    onlineElements.ownerAccessStatus.textContent = `Could not verify the owner code: ${error.message}`;
+  }
+});
+
+onlineElements.ownerResendButton.addEventListener('click', async () => {
+  if (!pendingOwnerEmail) return;
+  try {
+    const supabase = getSupabaseClient();
+    const { error } = await supabase.auth.signInWithOtp({
+      email: pendingOwnerEmail,
+      options: { shouldCreateUser: false },
+    });
+    if (error) throw error;
+    onlineElements.ownerAccessStatus.textContent = `A new sign-in code was sent to ${pendingOwnerEmail}.`;
+    onlineElements.ownerCode.value = '';
+    onlineElements.ownerCode.focus();
+  } catch (error) {
+    onlineElements.ownerAccessStatus.textContent = `Could not resend the owner code: ${error.message}`;
+  }
+});
+
+onlineElements.ownerSignoutButton.addEventListener('click', async () => {
+  try {
+    const supabase = getSupabaseClient();
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    pendingOwnerEmail = '';
+    onlineElements.ownerCodeForm.hidden = true;
+    setAdminAccess(false);
+    onlineElements.ownerAccessDialog.close();
+  } catch (error) {
+    onlineElements.ownerAccessStatus.textContent = `Could not sign out: ${error.message}`;
+  }
 });
 
 onlineElements.setup.hidden = Boolean(
@@ -310,6 +420,21 @@ if (onlineElements.setup.hidden) {
   setOnlineStatus('Choose a nickname and join the lobby to get started.');
 } else {
   setOnlineStatus('Multiplayer is not configured yet.');
+}
+
+try {
+  const supabase = getSupabaseClient();
+  supabase.auth.onAuthStateChange((_event, session) => {
+    void updateOwnerAccess(session);
+  });
+  supabase.auth.getSession().then(({ data, error }) => {
+    if (error) throw error;
+    return updateOwnerAccess(data.session);
+  }).catch((error) => {
+    onlineElements.ownerAccessStatus.textContent = `Could not check owner sign-in: ${error.message}`;
+  });
+} catch (error) {
+  onlineElements.ownerAccessStatus.textContent = `Owner sign-in is unavailable: ${error.message}`;
 }
 renderOnlinePlayers();
 

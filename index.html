@@ -19,7 +19,7 @@
         </a>
         <div class="topbar-right">
           <span class="live-indicator"><span></span> YOUR STORY</span>
-          <button id="owner-access-button" class="quiet-button" type="button">Admin passcode</button>
+          <button id="owner-access-button" class="quiet-button" type="button">Owner sign-in</button>
           <button id="restart-button" class="quiet-button" type="button">Start over</button>
         </div>
       </header>
@@ -406,17 +406,23 @@
     </main>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
     <dialog id="owner-access-dialog" class="online-visit-dialog owner-access-dialog">
-      <form method="dialog"><button class="quiet-button online-dialog-close" aria-label="Close Admin passcode">Close</button></form>
-      <p class="eyebrow">GAME TOOLS</p>
-      <h2>Enter Admin passcode</h2>
-      <p id="owner-access-status" class="detail-description" role="status" aria-live="polite">Enter the four-digit passcode to open Admin.</p>
+      <form method="dialog"><button class="quiet-button online-dialog-close" aria-label="Close owner sign-in">Close</button></form>
+      <p class="eyebrow">PRIVATE GAME TOOLS</p>
+      <h2>Owner sign-in</h2>
+      <p id="owner-access-status" class="detail-description" role="status" aria-live="polite">Enter the owner email to receive a one-time sign-in code.</p>
       <form id="owner-login-form" class="owner-login-form">
-        <label class="online-label" for="owner-passcode">Four-digit passcode</label>
-        <input id="owner-passcode" name="passcode" type="password" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="off" placeholder="••••" required />
-        <button id="owner-login-button" class="age-button" type="submit"><span>Open Admin</span><span aria-hidden="true">→</span></button>
+        <label class="online-label" for="owner-email">Owner email</label>
+        <input id="owner-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required />
+        <button id="owner-login-button" class="age-button" type="submit"><span>Send sign-in code</span><span aria-hidden="true">→</span></button>
       </form>
-      <button id="owner-signout-button" class="quiet-button owner-signout-button" type="button" hidden>Lock Admin</button>
-      <p class="online-chat-note">This passcode is a basic screen lock, not secure protection. The public game code can be inspected.</p>
+      <form id="owner-code-form" class="owner-login-form" hidden>
+        <label class="online-label" for="owner-code">Six-digit email code</label>
+        <input id="owner-code" name="code" type="text" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" autocomplete="one-time-code" placeholder="123456" required />
+        <button id="owner-verify-button" class="age-button" type="submit"><span>Verify and open Admin</span><span aria-hidden="true">✓</span></button>
+        <button id="owner-resend-button" class="quiet-button owner-signout-button" type="button">Send a new code</button>
+      </form>
+      <button id="owner-signout-button" class="quiet-button owner-signout-button" type="button" hidden>Sign out</button>
+      <p class="online-chat-note">Only the verified owner email can open Admin. The Admin panel changes this browser’s local game only.</p>
     </dialog>
     <script src="script.js"></script>
     <script src="online-config.js"></script>
